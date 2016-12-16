@@ -99,11 +99,12 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 		VAR i, j : LONGINT;
 		BEGIN
 			FOR i := 1 TO m - 2 DO
-				IF (mesh[i,j]='a')  & (mesh[i,j-1]=' ') THEN
-					mesh[i,j]:=' ';
-					 mesh[i,j-1]:='a'
+				IF mesh[i,j]='a' THEN
+					nmesh[i,j]:=' ';
+					 nmesh[i,j-1]:='a'
 				END
 			END;
+			mesh := nmesh;
 		END Generation;
 
 		PROCEDURE DrawIt;
