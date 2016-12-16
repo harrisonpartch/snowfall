@@ -19,14 +19,14 @@ TYPE KillerMsg = OBJECT
 		
 TYPE Grid = OBJECT
 	VAR
-		mesh : ARRAY m,m OF cell;	
+		grid: ARRAY m,m OF cell;	
 
 		PROCEDURE clear;
 		VAR i, j : LONGINT;
 		BEGIN
 			FOR i := 0 TO m - 1 DO
 				FOR j := 0 TO m - 1 DO
-					mesh[i, j].type := ' ';
+					grid[i, j].type := ' ';
 				END
 			END;
 		END clear;		
@@ -58,7 +58,7 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 			NEW(nmesh);
 			FOR i :=  1 TO m - 2 DO
 				FOR j := 1 TO m - 2 DO
-					IF random.Dice(100) > 99 THEN mesh[i, j].type := 'a' END
+					IF random.Dice(100) > 99 THEN mesh.grid[i, j].type := 'a' END
 				END
 			END;
 			IncCount;
@@ -69,7 +69,7 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 		BEGIN
 			FOR i := 0 TO m - 1 DO
 				FOR j := 0 TO m - 1 DO
-					mesh[i, j].type := ' ';
+					mesh.grid[i, j].type := ' ';
 				END
 			END;
 		END clear;		
@@ -98,13 +98,25 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 		PROCEDURE Generation;
 		VAR i, j : LONGINT;
 		BEGIN
-			FOR i := 1 TO m - 2 DO
-				IF mesh[i,j]='a' THEN
-					nmesh[i,j]:=' ';
-					 nmesh[i,j-1]:='a'
+			FOR i := 1 TO m - 2 DO 
+				FOR j:= 1 TO m-2 DO
+					IF mesh.grid[i,j].type	='a' THEN				
+						IF mesh.grid[i,j-1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i,j-1].type:='a'
+						ELSIF mesh.grid[i-1,j-1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i-1,j-1].type:='a'					
+						ELSIF mesh.grid[i+1,j+1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i+1,j+1].type:='a';			
+						END
+					END
 				END
 			END;
-			mesh := nmesh;
+
+			mesh.grid:=nmesh.grid;
+		
 		END Generation;
 
 		PROCEDURE DrawIt;
@@ -117,7 +129,7 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 				ix := i * size;
 				FOR j := 0 TO m - 1 DO
 					jy := j * size;
-					IF mesh[i, j].type='a' THEN 
+					IF mesh.grid[i,j].type='a' THEN 
 						Raster.SetRGB(pix, 255, 0, 0)
 					ELSE
 						Raster.SetRGB(pix, 0,0, 0)
@@ -147,7 +159,7 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 			IF (x>size) & (x<wsize-size) &  (y>size) & (y<wsize-size) THEN
 				FOR i:=(x DIV size) -1 TO (x DIV size) +1 DO
 					FOR j:=(y DIV size) -1 TO (y DIV size) +1 DO
-						mesh[i,j].type:='a'
+						mesh.grid[i,j].type:='a'
 					END
 				END
 			END
