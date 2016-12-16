@@ -2,11 +2,11 @@ MODULE Snowfall;
 
 IMPORT
 	Raster, Random, Objects, WMRectangles, WMGraphics, Modules, Strings,
-	WM := WMWindowManager, WMMessages;
+	WM := WMWindowManager, WMMessages, Out:=DebugLog;
 
 CONST
 	m = 250;
-	size = 1;
+	size = 3;
 
 	WindowWidth = m * size; WindowHeight = m * size;
 
@@ -19,7 +19,7 @@ TYPE
 	VAR
 		mesh1, mesh2, n1 : ARRAY m, m OF REAL;
 		random : Random.Generator;
-		alive, dead, pause, alpha : BOOLEAN;
+		alive, dead, pause, alpha, pdown : BOOLEAN;
 		i : LONGINT;
 
 		PROCEDURE &New*(alpha : BOOLEAN);
@@ -35,6 +35,18 @@ TYPE
 
 			NEW(random);
 
+			clear;
+			FOR i :=  1 TO m - 2 DO
+				FOR j := 1 TO m - 2 DO
+					IF random.Dice(100) > 99 THEN mesh1[i, j] := random.Dice(1000)/1000 END
+				END
+			END;
+			IncCount;
+		END New;
+		
+		PROCEDURE clear;
+		VAR i, j : LONGINT;
+		BEGIN
 			FOR i := 0 TO m - 1 DO
 				FOR j := 0 TO m - 1 DO
 					mesh1[i, j] := 0;
@@ -42,13 +54,7 @@ TYPE
 					n1[i, j] := 0
 				END
 			END;
-			FOR i :=  1 TO m - 2 DO
-				FOR j := 1 TO m - 2 DO
-					IF random.Dice(100) > 90 THEN mesh1[i, j] := random.Dice(1000)/1000 END
-				END
-			END;
-			IncCount;
-		END New;
+		END clear;		
 
 		PROCEDURE Handle(VAR m: WMMessages.Message);
 		BEGIN
@@ -97,7 +103,7 @@ TYPE
 				FOR j := 1 TO m - 2 DO
 					(*  HERE ARE THE DIFFERENCE RULES! *)
 					mesh1[i, j] := mesh1[i, j] + n1[i, j] / 80- (mesh2[i, j] * mesh2[i, j])  ;
-					mesh2[i, j] := mesh2[i, j] +  mesh1[i, j] / 20 - 0.03 ;
+					mesh2[i, j] := mesh2[i, j] +  mesh1[i, j] / 20 - 0.01 ;
 					IF mesh1[i, j] < 0 THEN mesh1[i, j] := 0 END;
 					IF mesh2[i, j] < 0 THEN mesh2[i, j] := 0 END;
 					IF mesh1[i, j] > 1 THEN mesh1[i, j] := 1 END;
@@ -116,9 +122,8 @@ TYPE
 				ix := i * size ;
 				FOR j := 0 TO m - 1 DO
 					jy := j * size;
-					IF alpha THEN
-						Raster.SetRGBA(pix, SHORT((255-ENTIER(mesh1[i, j] * 255)) ), SHORT((255-ENTIER(mesh2[i, j] * 255)) ), 0,
-						SHORT( (255-ENTIER(mesh2[i, j] * 255))+ENTIER(mesh1[i, j] * 255)) MOD 128+127 )
+					IF mesh1[i, j]=100 THEN 
+						Raster.SetRGB(pix, 255, 0, 0)
 					ELSE
 						Raster.SetRGB(pix, SHORT((255-ENTIER(mesh1[i, j] * 255)) ), SHORT((255-ENTIER(mesh2[i, j] * 255)) ), 0)
 					END;
@@ -130,32 +135,44 @@ TYPE
 
 	PROCEDURE PointerDown (x, y : LONGINT; keys : SET);
 	BEGIN
-		pause:=~pause;
+		pdown:=TRUE;
 	END PointerDown;
-	
 	
 	PROCEDURE PointerUp (x, y : LONGINT; keys : SET);
 	BEGIN
-	
+		pdown:=FALSE;
 	END PointerUp;
 	
 	PROCEDURE PointerMove (x, y : LONGINT; keys : SET);
+	VAR
+		i,j,wsize: LONGINT;
 	BEGIN
-	
+		IF pdown THEN 
+			wsize:= size*m;
+			IF (x>size) & (x<wsize-size) &  (y>size) & (y<wsize-size) THEN
+				FOR i:=(x DIV size) -1 TO (x DIV size) +1 DO
+					FOR j:=(y DIV size) -1 TO (y DIV size) +1 DO
+						mesh1[i,j] :=100
+					END
+				END
+			END
+		END
 	END PointerMove;
 	
 	PROCEDURE KeyEvent (ucs : LONGINT; flags : SET; keysym : LONGINT);
 	BEGIN
 		CASE CHR(ucs) OF
-			'+': 
-			|'-': 
-			ELSE
+			'p': pause:=~pause
+			|'q': Close
+			|'c': clear
+ELSE
 		END;
 	END KeyEvent;
 
 	BEGIN {ACTIVE}
 		alive := TRUE;
 		Objects.SetPriority(Objects.Low);
+		Out.String("the snow is beginning to fall...");
 		WHILE alive DO
 			IF ~pause THEN
 				Generation;
