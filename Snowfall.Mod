@@ -10,14 +10,16 @@ CONST
 
 	WindowWidth = m * size; WindowHeight = m * size;
 
-TYPE
-
-	KillerMsg = OBJECT
-	END KillerMsg;
+TYPE cell = RECORD
+		type: CHAR
+		END;
+		
+TYPE KillerMsg = OBJECT
+		END KillerMsg;
 
 	TCW* =  OBJECT(WM.BufferWindow)
 	VAR
-		mesh1, mesh2, n1 : ARRAY m, m OF REAL;
+		mesh: ARRAY m,m OF cell;
 		random : Random.Generator;
 		alive, dead, pause, alpha, pdown : BOOLEAN;
 		i : LONGINT;
@@ -38,7 +40,7 @@ TYPE
 			clear;
 			FOR i :=  1 TO m - 2 DO
 				FOR j := 1 TO m - 2 DO
-					IF random.Dice(100) > 99 THEN mesh1[i, j] := random.Dice(1000)/1000 END
+					IF random.Dice(100) > 99 THEN mesh[i, j].type := 'a' END
 				END
 			END;
 			IncCount;
@@ -49,9 +51,7 @@ TYPE
 		BEGIN
 			FOR i := 0 TO m - 1 DO
 				FOR j := 0 TO m - 1 DO
-					mesh1[i, j] := 0;
-					mesh2[i, j] := 0;
-					n1[i, j] := 0
+					mesh[i, j].type := ' ';
 				END
 			END;
 		END clear;		
@@ -81,33 +81,20 @@ TYPE
 		VAR i, j : LONGINT;
 		BEGIN
 			FOR i := 1 TO m - 2 DO
-				n1[i, 0] := mesh1[i - 1, 0] + mesh1[i + 1, 0] + mesh1[i, m - 1] + mesh1[i, 1]
-				 	+ mesh1[i - 1, m - 1] +  mesh1[i + 1, 1] + mesh1[i + 1, m - 1] + mesh1[i - 1,  1];
-				n1[i, m - 1] := mesh1[i - 1, m - 1] + mesh1[i + 1, m - 1] + mesh1[i, m - 2] + mesh1[i, 0]
-					+ mesh1[i - 1, m - 2] +  mesh1[i + 1, 0] + mesh1[i + 1, m - 2] + mesh1[i - 1, 0];
+	
 				END;
 			FOR j := 1 TO m - 2 DO
-				n1[0, j] := mesh1[m - 1, j] + mesh1[1, j] + mesh1[0, j - 1] + mesh1[0, j + 1]
-					+ mesh1[m - 1, j - 1] +  mesh1[1, j + 1] + mesh1[1, j - 1] + mesh1[m - 1, j + 1];
-				n1[m - 1, j] := mesh1[m - 2, j] + mesh1[0, j] + mesh1[m - 1, j - 1] + mesh1[m - 1, j + 1]
-					+ mesh1[m - 2, j - 1] +  mesh1[0, j + 1] + mesh1[0, j - 1] + mesh1[m - 2, j + 1]
+
 			END;
 
 			FOR i := 1 TO m - 2 DO
 				FOR j := 1 TO m - 2 DO
-					n1[i, j] := mesh1[i - 1, j] + mesh1[i + 1, j] + mesh1[i, j - 1] + mesh1[i, j + 1]
-						+ mesh1[i - 1, j - 1] +  mesh1[i + 1, j + 1] + mesh1[i + 1, j - 1] + mesh1[i - 1, j + 1]
+	
 				END
 			END;
 			FOR i := 1 TO m - 2 DO
 				FOR j := 1 TO m - 2 DO
-					(*  HERE ARE THE DIFFERENCE RULES! *)
-					mesh1[i, j] := mesh1[i, j] + n1[i, j] / 80- (mesh2[i, j] * mesh2[i, j])  ;
-					mesh2[i, j] := mesh2[i, j] +  mesh1[i, j] / 20 - 0.01 ;
-					IF mesh1[i, j] < 0 THEN mesh1[i, j] := 0 END;
-					IF mesh2[i, j] < 0 THEN mesh2[i, j] := 0 END;
-					IF mesh1[i, j] > 1 THEN mesh1[i, j] := 1 END;
-					IF mesh2[i, j] > 1 THEN mesh2[i, j] := 1 END;
+
 				END;
 			END;
 		END Generation;
@@ -122,10 +109,10 @@ TYPE
 				ix := i * size ;
 				FOR j := 0 TO m - 1 DO
 					jy := j * size;
-					IF mesh1[i, j]=100 THEN 
+					IF mesh[i, j].type='a' THEN 
 						Raster.SetRGB(pix, 255, 0, 0)
 					ELSE
-						Raster.SetRGB(pix, SHORT((255-ENTIER(mesh1[i, j] * 255)) ), SHORT((255-ENTIER(mesh2[i, j] * 255)) ), 0)
+						Raster.SetRGB(pix, 0,0, 0)
 					END;
 					Raster.Fill(img, ix, jy, ix+size, jy+size, pix, mode)
 				END
@@ -152,7 +139,7 @@ TYPE
 			IF (x>size) & (x<wsize-size) &  (y>size) & (y<wsize-size) THEN
 				FOR i:=(x DIV size) -1 TO (x DIV size) +1 DO
 					FOR j:=(y DIV size) -1 TO (y DIV size) +1 DO
-						mesh1[i,j] :=100
+						mesh[i,j].type:='a'
 					END
 				END
 			END

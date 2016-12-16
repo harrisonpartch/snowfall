@@ -1,9 +1,10 @@
 <Desktop>
-	<Window name="PET" loader="PET.Restore" l="942" t="44" r="1737" b="931" flags="{0..2,13}">
+	<Window name="FileManager" loader="WMFileManager.Restore" l="1379" t="799" r="1879" b="1199" flags="{0..2,13}"/>
+	<Window name="PET" loader="PET.Restore" l="251" t="283" r="692" b="593" flags="{0..2,13}">
 		<PETData>
 			<General SelectedPageNr="0" ProjectTextFile=""/>
-			<Tab file="Snowfall.Mod" codecFormat="AUTO" compilerOptions="-b=AMD --warnings" showLabels="false" wordWrap="false">
-				<Editor firstLine="75" cursorPos="2770"/>
+			<Tab file="Snowfall.Tool" codecFormat="AUTO" compilerOptions="\check" showLabels="false" wordWrap="false">
+				<Editor firstLine="0" cursorPos="49"/>
 				<SplitEditor visible="false" firstLine="0" cursorPos="0" height="400"/>
 				<SearchPanel visible="false" wrap="false" casesensitive="true" backwards="false" highlight="false" searchString="" replaceString=""/>
 				<LogPanel height="130"/>
@@ -11,15 +12,15 @@
 			</Tab>
 		</PETData>
 	</Window>
-	<Window name="PET" loader="PET.Restore" l="90" t="596" r="531" b="906" flags="{0..2,13}">
+	<Window name="PET" loader="PET.Restore" l="442" t="54" r="1237" b="941" flags="{0..2,13}">
 		<PETData>
 			<General SelectedPageNr="0" ProjectTextFile=""/>
-			<Tab file="Snowfall.Tool" codecFormat="AUTO" compilerOptions="\check" showLabels="false" wordWrap="false">
-				<Editor firstLine="0" cursorPos="14"/>
+			<Tab file="Snowfall2.Mod" codecFormat="AUTO" compilerOptions="-b=AMD --warnings" showLabels="false" wordWrap="false">
+				<Editor firstLine="98" cursorPos="1944"/>
 				<SplitEditor visible="false" firstLine="0" cursorPos="0" height="400"/>
 				<SearchPanel visible="false" wrap="false" casesensitive="true" backwards="false" highlight="false" searchString="" replaceString=""/>
 				<LogPanel height="130"/>
-				<SidePanel visible="true" width="5" scratchHeight="5"/>
+				<SidePanel visible="true" width="158" scratchHeight="5"/>
 			</Tab>
 		</PETData>
 	</Window>
