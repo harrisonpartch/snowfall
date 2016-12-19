@@ -5,10 +5,9 @@ IMPORT
 	WM := WMWindowManager, WMMessages, Out:=DebugLog;
 
 CONST
-	m = 250;
+	m = 300;
 	size = 3;
 
-	WindowWidth = m * size; WindowHeight = m * size;
 
 TYPE cell = RECORD
 		type: CHAR
@@ -19,9 +18,9 @@ TYPE KillerMsg = OBJECT
 		
 TYPE Grid = OBJECT
 	VAR
-		grid: ARRAY m,m OF cell;	
-
-		PROCEDURE clear;
+		grid: ARRAY m,m OF cell;	 
+		poisongrid: ARRAY m,m OF SHORTINT;
+	PROCEDURE clear;
 		VAR i, j : LONGINT;
 		BEGIN
 			FOR i := 0 TO m - 1 DO
@@ -37,15 +36,16 @@ TYPE Grid = OBJECT
 
 TYPE TCW* =  OBJECT(WM.BufferWindow)
 	VAR
-		mesh, nmesh: Grid;
+		mesh, nmesh, amesh: Grid;
 		random : Random.Generator;
-		alive, dead, pause, alpha, pdown : BOOLEAN;
-		i : LONGINT;
+		alive, dead, pause, alpha, pdown,switchingchar : BOOLEAN;
+		currenttype: CHAR;
+		i,j,mousex, mousey, count: LONGINT;
 
 		PROCEDURE &New*(alpha : BOOLEAN);
 		VAR i, j : LONGINT;
 		BEGIN
-			Init(WindowWidth, WindowHeight, alpha);
+			Init(size*m, size*m, alpha);
 			SELF.alpha :=alpha;
 			manager := WM.GetDefaultManager();
 			manager.Add(100, 100, SELF, {WM.FlagFrame, WM.FlagClose, WM.FlagNoResizing});
@@ -56,12 +56,8 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 			NEW(random);
 			NEW(mesh);
 			NEW(nmesh);
-			FOR i :=  1 TO m - 2 DO
-				FOR j := 1 TO m - 2 DO
-					IF random.Dice(100) > 99 THEN mesh.grid[i, j].type := 'a' END
-				END
-			END;
-			IncCount;
+			currenttype:='a';
+			clear;
 		END New;
 		
 		PROCEDURE clear;
@@ -72,7 +68,23 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 					mesh.grid[i, j].type := ' ';
 				END
 			END;
+			FOR i :=  1 TO m - 2 DO
+				FOR j := 1 TO m - 2 DO
+					IF random.Dice(100) > 95 THEN mesh.grid[i, j].type := 'a' END
+				END
+			END;
 		END clear;		
+
+		PROCEDURE poisonclear;
+		VAR i, j : LONGINT;
+		BEGIN
+			FOR i := 0 TO m - 1 DO
+				FOR j := 0 TO m - 1 DO
+					DEC(mesh.poisongrid[i, j])
+				END
+			END;
+		END poisonclear;		
+		
 
 		PROCEDURE Handle(VAR m: WMMessages.Message);
 		BEGIN
@@ -96,27 +108,61 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 		END Close;
 
 		PROCEDURE Generation;
-		VAR i, j : LONGINT;
+		VAR i, j: LONGINT;
 		BEGIN
-			FOR i := 1 TO m - 2 DO 
-				FOR j:= 1 TO m-2 DO
-					IF mesh.grid[i,j].type	='a' THEN				
-						IF mesh.grid[i,j-1].type=' ' THEN
+			FOR i := 2 TO m - 3 DO 
+				FOR j:= 2 TO m-3 DO
+					CASE mesh.grid[i,j].type OF
+					'a':				
+						IF mesh.grid[i,j+1].type=' ' THEN
 							nmesh.grid[i,j].type:=' ';
-							nmesh.grid[i,j-1].type:='a'
-						ELSIF mesh.grid[i-1,j-1].type=' ' THEN
-							nmesh.grid[i,j].type:=' ';
-							nmesh.grid[i-1,j-1].type:='a'					
+							nmesh.grid[i,j+1].type:='a'
 						ELSIF mesh.grid[i+1,j+1].type=' ' THEN
 							nmesh.grid[i,j].type:=' ';
-							nmesh.grid[i+1,j+1].type:='a';			
-						END
+							nmesh.grid[i+1,j+1].type:='a'					
+						ELSIF mesh.grid[i-1,j+1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i-1,j+1].type:='a';
+						ELSE
+							nmesh.grid[i,j].type:='a';	
+						END		
+					|'b':
+						IF mesh.grid[i,j+1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i,j+1].type:='b'
+						ELSIF mesh.grid[i+1,j+1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i+1,j+1].type:='b'					
+						ELSIF mesh.grid[i-1,j+1].type=' ' THEN
+							nmesh.grid[i,j].type:=' ';
+							nmesh.grid[i+1,j+1].type:='b'			
+						ELSE
+							nmesh.grid[i,j].type:='b';							
+						END	
+					|'g': nmesh.grid[i,j].type:='z'
+					|'z': nmesh.grid[i,j].type:='g'
+					|'t' : INC(mesh.poisongrid[i,j]);
+							IF mesh.poisongrid[i,j]>8 THEN 
+								nmesh.grid[i,j].type:=' '
+							ELSIF  mesh.poisongrid[i,j]=0 THEN
+								nmesh.grid[i,j].type:='t';
+								IF (mesh.grid[i,j-1].type=' ') &  (nmesh.grid[i,j-1].type=' ') THEN nmesh.grid[i,j-1].type:='t' END;
+								IF (mesh.grid[i,j+1].type=' ') &  (nmesh.grid[i,j+1].type=' ') THEN nmesh.grid[i,j+1].type:='t' END;
+								IF (mesh.grid[i+1,j].type=' ') &  (nmesh.grid[i+1,j].type=' ') THEN nmesh.grid[i+1,j].type:='t' END;
+								IF (mesh.grid[i+1,j].type=' ') &  (nmesh.grid[i-1,j].type=' ') THEN nmesh.grid[i-1,j].type:='t' END;
+ELSE
+								nmesh.grid[i,j].type:='t';
+							END
+					ELSE
+						
 					END
 				END
 			END;
-
-			mesh.grid:=nmesh.grid;
-		
+		FOR i := 0 TO m - 1 DO
+			FOR j := 0 TO m - 1 DO
+					mesh.grid[i,j]:=nmesh.grid[i,j];
+				END;
+			END;
 		END Generation;
 
 		PROCEDURE DrawIt;
@@ -129,10 +175,15 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 				ix := i * size;
 				FOR j := 0 TO m - 1 DO
 					jy := j * size;
-					IF mesh.grid[i,j].type='a' THEN 
-						Raster.SetRGB(pix, 255, 0, 0)
+					CASE mesh.grid[i,j].type OF
+						'a': Raster.SetRGB(pix, 255, 0, 0)
+						| 'b': Raster.SetRGB(pix, 0, 0, 255)
+						| 'g': Raster.SetRGB(pix, 0, 255,0)
+						| 'z': Raster.SetRGB(pix, 255, 255,0)			
+						| 't': Raster.SetRGB(pix, 100, 100,255)						
+						| ' ': Raster.SetRGB(pix, 0, 0, 0);
 					ELSE
-						Raster.SetRGB(pix, 0,0, 0)
+						Raster.SetRGB(pix, 0,255, 0)
 					END;
 					Raster.Fill(img, ix, jy, ix+size, jy+size, pix, mode)
 				END
@@ -151,29 +202,25 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 	END PointerUp;
 	
 	PROCEDURE PointerMove (x, y : LONGINT; keys : SET);
-	VAR
-		i,j,wsize: LONGINT;
 	BEGIN
-		IF pdown THEN 
-			wsize:= size*m;
-			IF (x>size) & (x<wsize-size) &  (y>size) & (y<wsize-size) THEN
-				FOR i:=(x DIV size) -1 TO (x DIV size) +1 DO
-					FOR j:=(y DIV size) -1 TO (y DIV size) +1 DO
-						mesh.grid[i,j].type:='a'
-					END
-				END
-			END
-		END
+		mousex:=x DIV size;
+		mousey:=y DIV size;	
 	END PointerMove;
 	
 	PROCEDURE KeyEvent (ucs : LONGINT; flags : SET; keysym : LONGINT);
 	BEGIN
-		CASE CHR(ucs) OF
-			'p': pause:=~pause
-			|'q': Close
-			|'c': clear
-ELSE
-		END;
+		IF switchingchar THEN
+			currenttype:=CHR(ucs);
+			switchingchar:=FALSE
+		ELSE
+			CASE CHR(ucs) OF
+				'p': pause:=~pause
+				|'q': Close
+				|'x': clear
+				|'s': switchingchar:=TRUE
+			ELSE
+			END
+		END
 	END KeyEvent;
 
 	BEGIN {ACTIVE}
@@ -182,8 +229,13 @@ ELSE
 		Out.String("the snow is beginning to fall...");
 		WHILE alive DO
 			IF ~pause THEN
+				IF pdown & (mousex>0) & (mousex<m-2) &  (mousey>0) & (mousey<m-2) THEN
+					mesh.grid[mousex,mousey].type:= currenttype
+				END;
 				Generation;
-				DrawIt
+				DrawIt;
+				count:=(count+1)MOD 5;
+				IF count=0 THEN poisonclear END;
 			END
 		END;
 		BEGIN {EXCLUSIVE} dead := TRUE; END;
