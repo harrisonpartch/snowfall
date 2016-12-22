@@ -5,8 +5,8 @@ IMPORT
 	WM := WMWindowManager, WMMessages, Out:=DebugLog;
 
 CONST
-	m = 300;
-	size = 3;
+	m = 150;
+	size = 2;
 
 
 TYPE cell = RECORD

@@ -1,26 +1,39 @@
 <Desktop>
-	<Window name="FileManager" loader="WMFileManager.Restore" l="1379" t="799" r="1879" b="1199" flags="{0..2,13}"/>
-	<Window name="PET" loader="PET.Restore" l="442" t="54" r="1237" b="941" flags="{0..2,13}">
+	<Window name="WMKernelLog" loader="WMKernelLog.Restore" l="1509" t="21" r="2149" b="477" flags="{0..2,13}"/>
+	<Window name="FileManager" loader="WMFileManager.Restore" l="563" t="471" r="1204" b="867" flags="{0..2,13}"/>
+	<Window name="PET" loader="PET.Restore" l="848" t="308" r="1800" b="1382" flags="{0..2,13}">
 		<PETData>
 			<General SelectedPageNr="0" ProjectTextFile=""/>
-			<Tab file="Snowfall2.Mod" codecFormat="AUTO" compilerOptions="-b=AMD --warnings" showLabels="false" wordWrap="false">
-				<Editor firstLine="98" cursorPos="2639"/>
+			<Tab file="Turing.Mod" codecFormat="AUTO" compilerOptions="-b=AMD --warnings" showLabels="false" wordWrap="false">
+				<Editor firstLine="122" cursorPos="3369"/>
 				<SplitEditor visible="false" firstLine="0" cursorPos="0" height="400"/>
 				<SearchPanel visible="false" wrap="false" casesensitive="true" backwards="false" highlight="false" searchString="" replaceString=""/>
 				<LogPanel height="130"/>
-				<SidePanel visible="true" width="158" scratchHeight="5"/>
+				<SidePanel visible="true" width="179" scratchHeight="5"/>
 			</Tab>
 		</PETData>
 	</Window>
-	<Window name="PET" loader="PET.Restore" l="251" t="283" r="692" b="593" flags="{0..2,13}">
+	<Window name="PET" loader="PET.Restore" l="1089" t="67" r="1344" b="369" flags="{0..2,13}">
 		<PETData>
 			<General SelectedPageNr="0" ProjectTextFile=""/>
 			<Tab file="Snowfall.Tool" codecFormat="AUTO" compilerOptions="\check" showLabels="false" wordWrap="false">
-				<Editor firstLine="0" cursorPos="34"/>
+				<Editor firstLine="0" cursorPos="14"/>
 				<SplitEditor visible="false" firstLine="0" cursorPos="0" height="400"/>
 				<SearchPanel visible="false" wrap="false" casesensitive="true" backwards="false" highlight="false" searchString="" replaceString=""/>
 				<LogPanel height="130"/>
 				<SidePanel visible="true" width="5" scratchHeight="5"/>
+			</Tab>
+		</PETData>
+	</Window>
+	<Window name="PET" loader="PET.Restore" l="680" t="416" r="1480" b="1016" flags="{0..2,13}">
+		<PETData>
+			<General SelectedPageNr="0" ProjectTextFile=""/>
+			<Tab file="Scratch..Mod" codecFormat="AUTO" compilerOptions="-b=AMD --warnings" showLabels="false" wordWrap="false">
+				<Editor firstLine="0" cursorPos="296"/>
+				<SplitEditor visible="false" firstLine="0" cursorPos="0" height="400"/>
+				<SearchPanel visible="false" wrap="false" casesensitive="true" backwards="false" highlight="false" searchString="" replaceString=""/>
+				<LogPanel height="130"/>
+				<SidePanel visible="true" width="250" scratchHeight="5"/>
 			</Tab>
 		</PETData>
 	</Window>
