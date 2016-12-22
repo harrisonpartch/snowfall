@@ -4,6 +4,7 @@ IMPORT
 	Raster, Random, Objects, WMRectangles, WMGraphics, Modules, Strings,
 	WM := WMWindowManager, WMMessages;
 
+
 CONST
 	m = 300;
 	size = 2;
