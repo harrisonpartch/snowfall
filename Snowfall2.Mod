@@ -8,7 +8,6 @@ CONST
 	m = 150;
 	size = 2;
 
-
 TYPE cell = RECORD
 		type: CHAR
 		END;
@@ -38,21 +37,18 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 	VAR
 		mesh, nmesh, amesh: Grid;
 		random : Random.Generator;
-		alive, dead, pause, alpha, pdown,switchingchar : BOOLEAN;
+		alive, dead, pause, alpha, pdown,switchingchar,tpause: BOOLEAN;
 		currenttype: CHAR;
 		i,j,mousex, mousey, count: LONGINT;
 
-		PROCEDURE &New*(alpha : BOOLEAN);
+		PROCEDURE &New;
 		VAR i, j : LONGINT;
 		BEGIN
 			Init(size*m, size*m, alpha);
-			SELF.alpha :=alpha;
 			manager := WM.GetDefaultManager();
 			manager.Add(100, 100, SELF, {WM.FlagFrame, WM.FlagClose, WM.FlagNoResizing});
-
-			SetTitle(Strings.NewString("Turing"));
-			SetIcon(WMGraphics.LoadImage("WMIcons.tar://Snowfall.png", TRUE));
-
+			SetTitle(Strings.NewString("Snowfall"));
+			SetIcon(WMGraphics.LoadImage("Snowfall.png", TRUE));
 			NEW(random);
 			NEW(mesh);
 			NEW(nmesh);
@@ -83,8 +79,7 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 					DEC(mesh.poisongrid[i, j])
 				END
 			END;
-		END poisonclear;		
-		
+		END poisonclear;			
 
 		PROCEDURE Handle(VAR m: WMMessages.Message);
 		BEGIN
@@ -108,10 +103,11 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 		END Close;
 
 		PROCEDURE Generation;
-		VAR i, j: LONGINT;
+		VAR i, j, k, ii, jj: LONGINT;
 		BEGIN
-			FOR i := 2 TO m - 3 DO 
-				FOR j:= 2 TO m-3 DO
+			FOR  k:= 2 TO m-3 DO 
+				j:=m-k;
+				FOR i:= 2 TO m-3 DO
 					CASE mesh.grid[i,j].type OF
 					'a':				
 						IF mesh.grid[i,j+1].type=' ' THEN
@@ -125,8 +121,8 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 							nmesh.grid[i-1,j+1].type:='a';
 						ELSE
 							nmesh.grid[i,j].type:='a';	
-						END		
-					|'b':
+						END	
+					|'b':				
 						IF mesh.grid[i,j+1].type=' ' THEN
 							nmesh.grid[i,j].type:=' ';
 							nmesh.grid[i,j+1].type:='b'
@@ -135,34 +131,35 @@ TYPE TCW* =  OBJECT(WM.BufferWindow)
 							nmesh.grid[i+1,j+1].type:='b'					
 						ELSIF mesh.grid[i-1,j+1].type=' ' THEN
 							nmesh.grid[i,j].type:=' ';
-							nmesh.grid[i+1,j+1].type:='b'			
+							nmesh.grid[i-1,j+1].type:='b';
 						ELSE
-							nmesh.grid[i,j].type:='b';							
-						END	
+							nmesh.grid[i,j].type:='b';	
+						END
 					|'g': nmesh.grid[i,j].type:='z'
 					|'z': nmesh.grid[i,j].type:='g'
-					|'t' : INC(mesh.poisongrid[i,j]);
-							IF mesh.poisongrid[i,j]>8 THEN 
-								nmesh.grid[i,j].type:=' '
-							ELSIF  mesh.poisongrid[i,j]=0 THEN
-								nmesh.grid[i,j].type:='t';
-								IF (mesh.grid[i,j-1].type=' ') &  (nmesh.grid[i,j-1].type=' ') THEN nmesh.grid[i,j-1].type:='t' END;
-								IF (mesh.grid[i,j+1].type=' ') &  (nmesh.grid[i,j+1].type=' ') THEN nmesh.grid[i,j+1].type:='t' END;
-								IF (mesh.grid[i+1,j].type=' ') &  (nmesh.grid[i+1,j].type=' ') THEN nmesh.grid[i+1,j].type:='t' END;
-								IF (mesh.grid[i+1,j].type=' ') &  (nmesh.grid[i-1,j].type=' ') THEN nmesh.grid[i-1,j].type:='t' END;
-ELSE
-								nmesh.grid[i,j].type:='t';
+					|'t' : IF ~tpause THEN
+								INC(mesh.poisongrid[i,j]);
+								IF mesh.poisongrid[i,j]>8 THEN 
+									nmesh.grid[i,j].type:=' '
+								ELSIF  mesh.poisongrid[i,j]=0 THEN
+									nmesh.grid[i,j].type:='t';
+									FOR ii:=i-1 TO i+1 DO
+										FOR jj:=j-1 TO j+1 DO
+											IF (mesh.grid[ii,jj].type=' ') & (nmesh.grid[ii,jj].type=' ') THEN nmesh.grid[ii,jj].type:='t' END;
+										END
+									END
+								ELSE
+									nmesh.grid[i,j].type:='t';
+								END
+							ELSE
+								nmesh.grid[i,j].type:='g';
 							END
-					ELSE
-						
+					ELSE				
 					END
 				END
 			END;
-		FOR i := 0 TO m - 1 DO
-			FOR j := 0 TO m - 1 DO
-					mesh.grid[i,j]:=nmesh.grid[i,j];
-				END;
-			END;
+		mesh.grid:=nmesh.grid;	
+		nmesh.clear;		
 		END Generation;
 
 		PROCEDURE DrawIt;
@@ -215,6 +212,7 @@ ELSE
 		ELSE
 			CASE CHR(ucs) OF
 				'p': pause:=~pause
+				|'P': tpause:=~tpause
 				|'q': Close
 				|'x': clear
 				|'s': switchingchar:=TRUE
@@ -243,17 +241,11 @@ ELSE
 
 VAR
 	nofWindows : LONGINT;
-
-PROCEDURE OpenAlpha*;
-VAR window : TCW;
-BEGIN
-	NEW(window, TRUE);
-END OpenAlpha;
-
+	
 PROCEDURE Open*;
 VAR window : TCW;
 BEGIN
-	NEW(window, FALSE);
+	NEW(window);
 END Open;
 
 PROCEDURE IncCount;
